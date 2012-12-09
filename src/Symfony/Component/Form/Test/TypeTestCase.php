@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Tests\Component\Form\Extension\Core\Type;
+namespace Symfony\Component\Form\Test;
 
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormFactory;
