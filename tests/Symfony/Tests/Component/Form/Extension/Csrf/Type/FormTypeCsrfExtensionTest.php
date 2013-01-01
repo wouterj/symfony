@@ -11,6 +11,8 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Csrf\Type;
 
+use Symfony\Component\Form\Test\TypeTestCase;
+
 class FormTypeCsrfExtensionTest extends TypeTestCase
 {
     public function testCsrfProtectionByDefault()

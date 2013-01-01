@@ -11,6 +11,8 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Validator\Type;
 
+use Symfony\Component\Form\Test\TypeTestCase;
+
 class FieldTypeValidatorExtensionTest extends TypeTestCase
 {
     public function testValidationGroupNullByDefault()

@@ -11,10 +11,10 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Core\Type;
 
-require_once __DIR__ . '/TypeTestCase.php';
 require_once __DIR__ . '/../../../Fixtures/Author.php';
 
 use Symfony\Component\Form\Form;
+use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Tests\Component\Form\Fixtures\Author;
 

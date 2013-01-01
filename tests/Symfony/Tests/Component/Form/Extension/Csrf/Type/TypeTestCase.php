@@ -11,7 +11,7 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Csrf\Type;
 
-use Symfony\Tests\Component\Form\Extension\Core\Type\TypeTestCase as BaseTestCase;
+use Symfony\Component\Form\Test\TypeTestCase as BaseTestCase;
 use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
 
 abstract class TypeTestCase extends BaseTestCase

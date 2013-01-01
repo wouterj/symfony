@@ -11,8 +11,7 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Core\Type;
 
-require_once __DIR__ . '/TypeTestCase.php';
-
+use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class FileTypeTest extends TypeTestCase

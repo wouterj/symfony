@@ -11,6 +11,7 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Core\Type;
 
+use Symfony\Component\Form\Test\TypeTestCase;
 use Symfony\Component\Form\CallbackTransformer;
 
 class CheckboxTypeTest extends TypeTestCase

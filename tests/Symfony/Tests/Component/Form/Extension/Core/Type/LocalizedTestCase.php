@@ -11,7 +11,7 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Core\Type;
 
-require_once __DIR__ . '/TypeTestCase.php';
+use Symfony\Component\Form\Test\TypeTestCase;
 
 abstract class LocalizedTestCase extends TypeTestCase
 {

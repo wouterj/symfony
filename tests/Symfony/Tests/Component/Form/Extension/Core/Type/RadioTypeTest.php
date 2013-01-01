@@ -11,6 +11,8 @@
 
 namespace Symfony\Tests\Component\Form\Extension\Core\Type;
 
+use Symfony\Component\Form\Test\TypeTestCase;
+
 class RadioTypeTest extends TypeTestCase
 {
     public function testPassValueToView()
