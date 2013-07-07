@@ -134,6 +134,18 @@ class PhpDumperTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($foo, $container->get('alias_for_alias'));
     }
 
+    public function testEmptyAliases()
+    {
+        $container = new ContainerBuilder();
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        eval('?>'.$dumper->dump(array('class' => 'Symfony_DI_PhpDumper_Test_Empty_Aliases')));
+
+        $container = new \Symfony_DI_PhpDumper_Test_Empty_Aliases();
+        $this->assertFalse($container->has('foo'));
+    }
+
     public function testOverrideServiceWhenUsingADumpedContainer()
     {
         require_once self::$fixturesPath.'/php/services9.php';
