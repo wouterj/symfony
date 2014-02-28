@@ -25,19 +25,20 @@ interface ArgumentResolverInterface
      * Checks if the current parameter can be resolved by this argument 
      * resolver.
      *
+     * @param Request              $request
      * @param \ReflectionParameter $parameter
      *
      * @return Boolean
      */
-    public function accepts(\ReflectionParameter $parameter, Request $request);
+    public function accepts(Request $request, \ReflectionParameter $parameter);
 
     /**
      * Resolves the current parameter into an argument.
      *
-     * @param \ReflectionParameter $parameter
      * @param Request              $request
+     * @param \ReflectionParameter $parameter
      * 
      * @return mixed The resolved argument
      */
-    public function resolve(\ReflectionParameter $parameter, Request $request);
+    public function resolve(Request $request, \ReflectionParameter $parameter);
 }

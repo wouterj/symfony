@@ -52,8 +52,8 @@ class ArgumentResolverManager
 
         foreach ($parameters as $parameter) {
             foreach ($this->resolvers as $argumentResolver) {
-                if ($argumentResolver->accepts($parameter, $request)) {
-                    $arguments[] = $argumentResolver->resolve($parameter, $request);
+                if ($argumentResolver->accepts($request, $parameter)) {
+                    $arguments[] = $argumentResolver->resolve($request, $parameter);
                     continue 2;
                 }
             }
