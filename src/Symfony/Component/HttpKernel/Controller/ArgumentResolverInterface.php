@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\HttpKernel\Controller;
 
+use Symfony\Component\HttpFoundation\Request;
+
 /**
  * An ArgumentResolverInterface implementation resolves the arguments of 
  * controllers.
@@ -27,14 +29,15 @@ interface ArgumentResolverInterface
      *
      * @return Boolean
      */
-    public function supports(\ReflectionParameter $parameter);
+    public function accepts(\ReflectionParameter $parameter, Request $request);
 
     /**
      * Resolves the current parameter into an argument.
      *
      * @param \ReflectionParameter $parameter
+     * @param Request              $request
      * 
      * @return mixed The resolved argument
      */
-    public function resolve(\ReflectionParameter $parameter);
+    public function resolve(\ReflectionParameter $parameter, Request $request);
 }
