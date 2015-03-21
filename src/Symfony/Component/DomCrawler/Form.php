@@ -197,9 +197,21 @@ class Form extends Link implements \ArrayAccess
     {
         $uri = parent::getUri();
 
-        if (!in_array($this->getMethod(), array('POST', 'PUT', 'DELETE', 'PATCH')) && $queryString = http_build_query($this->getValues(), null, '&')) {
-            $sep = false === strpos($uri, '?') ? '?' : '&';
-            $uri .= $sep.$queryString;
+        if (!in_array($this->getMethod(), array('POST', 'PUT', 'DELETE', 'PATCH'))) {
+            $query = parse_url($uri, PHP_URL_QUERY);
+            $currentParameters = array();
+            if ($query) {
+                foreach (explode('&', $query) as $param) {
+                    list($name, $value) = explode('=', $param, 2);
+                    $currentParameters[$name] = $value;
+                }
+            }
+
+            $queryString = http_build_query(array_merge($currentParameters, $this->getValues()), null, '&');
+
+            $pos = strpos($uri, '?');
+            $base = false === $pos ? $uri : substr($uri, 0, $pos);
+            $uri = rtrim($base.'?'.$queryString, '?');
         }
 
         return $uri;
