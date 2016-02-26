@@ -51,6 +51,27 @@ class ReplaceAliasByActualDefinitionPassTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @group legacy
+     */
+    public function testProcessWithFactoryService()
+    {
+        $container = new ContainerBuilder();
+
+        $container->register('foo', 'Bar\FooClass');
+
+        $container->register('bar', 'Bar\FooClass')
+            ->setPublic(false)
+            ->setFactoryService('foo')
+            ->setFactoryMethod('getInstance');
+
+        $container->setAlias('baz', 'bar');
+
+        $this->process($container);
+
+        $this->assertInstanceOf('Bar\FooClass', $container->get('bar'));
+    }
+
+    /**
      * @expectedException \InvalidArgumentException
      */
     public function testProcessWithInvalidAlias()
