@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Security\Core\Authentication\Token;
 
+use Symfony\Component\Security\Principal\Token\AuthenticatedUsernamePasswordToken;
 use Symfony\Component\Security\Principal\Token\UsernamePasswordRequestToken;
 
 /**
@@ -34,7 +35,7 @@ class UsernamePasswordToken extends AbstractToken
     public function __construct($user, $credentials, string $providerKey, array $roles = [])
     {
         if (static::class === __CLASS__) {
-            @trigger_error(__CLASS__.' is deprecated since Symfony 4.4 and will be removed in Symfony 5.0. Use '.UsernamePasswordRequestToken::class.' or instead.', E_USER_DEPRECATED);
+            @trigger_error(sprintf('%s is deprecated since Symfony 4.4 and will be removed in Symfony 5.0. Use %s or %s instead.', __CLASS__, UsernamePasswordRequestToken::class, AuthenticatedUsernamePasswordToken::class), E_USER_DEPRECATED);
         }
 
         parent::__construct($roles);
