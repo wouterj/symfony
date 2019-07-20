@@ -11,4 +11,8 @@ namespace Symfony\Component\Security\Principal\Token;
  */
 interface AuthenticationRequestTokenInterface
 {
+    /**
+     * @return string the provider key (often the firewall name)
+     */
+    public function getProviderKey();
 }

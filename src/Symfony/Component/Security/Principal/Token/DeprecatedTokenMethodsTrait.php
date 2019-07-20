@@ -2,6 +2,8 @@
 
 namespace Symfony\Component\Security\Principal\Token;
 
+use function foo\func;
+
 /**
  * @author Wouter de Jong <wouter@wouterj.nl>
  * @internal
@@ -9,6 +11,7 @@ namespace Symfony\Component\Security\Principal\Token;
  */
 trait DeprecatedTokenMethodsTrait
 {
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function getUsername()
     {
         @trigger_error('Method '.__METHOD__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -16,6 +19,7 @@ trait DeprecatedTokenMethodsTrait
         return parent::getUsername();
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function getUser()
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -23,13 +27,17 @@ trait DeprecatedTokenMethodsTrait
         return parent::getUser();
     }
 
-    public function setUser($user)
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
+    public function setUser($user/*, $hideDeprecation = false*/)
     {
-        @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
+        if (1 === func_num_args() || false === func_get_arg(1)) {
+            @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
+        }
 
         parent::setUser($user);
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function isAuthenticated()
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0. Check instance of '.__NAMESPACE__.'\\AuthenticatedTokenInterface instead.', E_USER_DEPRECATED);
@@ -37,6 +45,7 @@ trait DeprecatedTokenMethodsTrait
         return parent::isAuthenticated();
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function setAuthenticated($authenticated)
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -44,6 +53,7 @@ trait DeprecatedTokenMethodsTrait
         parent::setAuthenticated($authenticated);
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function eraseCredentials()
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -51,20 +61,27 @@ trait DeprecatedTokenMethodsTrait
         parent::eraseCredentials();
     }
 
-    public function getAttributes()
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
+    public function getAttributes(/* $hideDeprecation = false */)
     {
-        @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
+        if (0 === func_num_args() || false === func_get_arg(0)) {
+            @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
+        }
 
         return parent::getAttributes();
     }
 
-    public function setAttributes(array $attributes)
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
+    public function setAttributes(array $attributes/*, $hideDeprecation = false */)
     {
-        @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
+        if (1 === func_num_args() || false === func_get_arg(1)) {
+            @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
+        }
 
         parent::setAttributes($attributes);
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function hasAttribute($name)
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -72,6 +89,7 @@ trait DeprecatedTokenMethodsTrait
         return parent::hasAttribute($name);
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function getAttribute($name)
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -79,6 +97,7 @@ trait DeprecatedTokenMethodsTrait
         return parent::getAttribute($name);
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function setAttribute($name, $value)
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);
@@ -86,6 +105,7 @@ trait DeprecatedTokenMethodsTrait
         parent::setAttribute($name, $value);
     }
 
+    /** @deprecated since Symfony 4.4, to be removed in Symfony 5.0. */
     public function getCredentials()
     {
         @trigger_error('Method '.get_class($this).'::'.__FUNCTION__.' is deprecated since Symfony 4.4 and will be removed in 5.0.', E_USER_DEPRECATED);

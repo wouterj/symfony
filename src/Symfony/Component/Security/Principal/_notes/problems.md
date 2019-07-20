@@ -1,0 +1,1 @@
+- always_authenticate_before_granting is no longer possible. An authenticated token (saved in the session) no longer has enough information to reauthenticate itself.

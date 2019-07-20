@@ -44,7 +44,7 @@ class UsernamePasswordToken extends AbstractToken
             throw new \InvalidArgumentException('$providerKey must not be empty.');
         }
 
-        $this->setUser($user);
+        $this->setUser($user, true);
         $this->credentials = $credentials;
         $this->providerKey = $providerKey;
 

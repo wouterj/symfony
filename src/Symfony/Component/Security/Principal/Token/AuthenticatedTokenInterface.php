@@ -2,7 +2,7 @@
 
 namespace Symfony\Component\Security\Principal\Token;
 
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Principal\Principal\PrincipalInterface;
 
 /**
  * Holds the authenticated data needed by the Security component.
@@ -15,9 +15,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 interface AuthenticatedTokenInterface
 {
     /**
-     * @return UserInterface|object the authenticated principal
+     * @return \Symfony\Component\Security\Principal\Principal\PrincipalInterface the authenticated principal
      */
-    public function getPrincipal(): object;
+    public function getPrincipal(): PrincipalInterface;
 
     /**
      * @return string[] list of roles of the authenticated principal
