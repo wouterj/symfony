@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Security\Core\Authentication\Token;
 
+use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Principal\Token\AuthenticatedUsernamePasswordToken;
 use Symfony\Component\Security\Principal\Token\UsernamePasswordRequestToken;
 
