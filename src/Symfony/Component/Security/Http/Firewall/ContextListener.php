@@ -113,8 +113,6 @@ class ContextListener extends AbstractListener
                 ($this->sessionTrackerEnabler)();
             }
 
-            $this->tokenStorage->setToken(null);
-
             return;
         }
 

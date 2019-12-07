@@ -392,7 +392,10 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         $configuredEntryPoint = isset($firewall['entry_point']) ? $firewall['entry_point'] : null;
 
         // Authentication listeners
-        list($authListeners, $defaultEntryPoint) = $this->createAuthenticationListeners($container, $id, $firewall, $authenticationProviders, $defaultProvider, $providerIds, $configuredEntryPoint, $contextListenerId);
+        list($authListeners, $defaultEntryPoint, $userProviders) = $this->createAuthenticationListeners($container, $id, $firewall, $authenticationProviders, $defaultProvider, $providerIds, $configuredEntryPoint, $contextListenerId);
+
+        $container->getDefinition('security.test.user_provider_map')
+            ->addMethodCall('addFirewall', [$id, $userProviders]);
 
         $config->replaceArgument(7, $configuredEntryPoint ?: $defaultEntryPoint);
 
@@ -446,6 +449,7 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
     private function createAuthenticationListeners(ContainerBuilder $container, string $id, array $firewall, array &$authenticationProviders, ?string $defaultProvider, array $providerIds, ?string $defaultEntryPoint, string $contextListenerId = null)
     {
         $listeners = [];
+        $userProviders = [];
         $hasListeners = false;
 
         foreach ($this->listenerPositions as $position) {
@@ -479,6 +483,9 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
                     $listeners[] = new Reference($listenerId);
                     $authenticationProviders[] = $provider;
                     $hasListeners = true;
+                    if (null !== $userProvider) {
+                        $userProviders[] = new Reference($userProvider);
+                    }
                 }
             }
         }
@@ -487,7 +494,7 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             throw new InvalidConfigurationException(sprintf('No authentication listener registered for firewall "%s".', $id));
         }
 
-        return [$listeners, $defaultEntryPoint];
+        return [$listeners, $defaultEntryPoint, $userProviders];
     }
 
     private function createEncoders(array $encoders, ContainerBuilder $container)

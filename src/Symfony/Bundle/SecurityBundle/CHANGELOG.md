@@ -1,6 +1,8 @@
 CHANGELOG
 =========
 
+ * Added the `SecurityTestTrait` with helper authentication options.
+
 5.0.0
 -----
 
