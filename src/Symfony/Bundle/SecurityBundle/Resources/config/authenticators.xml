@@ -33,6 +33,7 @@
                  abstract="true">
             <argument type="service" id="security.http_utils" />
             <argument /> <!-- csrf token generator -->
+            <argument /> <!-- user provider -->
             <argument type="service" id="security.encoder_factory" />
             <argument /> <!-- options -->
         </service>
