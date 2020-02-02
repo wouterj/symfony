@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Security\Guard\Provider;
 
-use Symfony\Component\Security\Core\Authentication\GuardAuthenticationManagerTrait;
+use Symfony\Component\Security\Http\Authentication\GuardAuthenticationManagerTrait;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;

@@ -14,7 +14,7 @@ namespace Symfony\Component\Security\Http\Firewall;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
-use Symfony\Component\Security\Core\Authentication\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authentication\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticationGuardToken;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
