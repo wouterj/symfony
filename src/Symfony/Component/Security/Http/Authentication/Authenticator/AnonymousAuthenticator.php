@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * @final
  * @experimental in 5.1
  */
-class AnonymousAuthenticator implements AuthenticatorInterface
+class AnonymousAuthenticator implements AuthenticatorInterface, TokenAuthenticatedInterface
 {
     private $secret;
     private $tokenStorage;
@@ -52,11 +52,6 @@ class AnonymousAuthenticator implements AuthenticatorInterface
     public function getUser($credentials): ?UserInterface
     {
         return new User('anon.', null);
-    }
-
-    public function checkCredentials($credentials, UserInterface $user): bool
-    {
-        return true;
     }
 
     public function createAuthenticatedToken(UserInterface $user, string $providerKey): TokenInterface
