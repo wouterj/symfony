@@ -11,8 +11,8 @@
 
 namespace Symfony\Bundle\SecurityBundle\DependencyInjection;
 
+use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AuthenticatorFactoryInterface;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\EntrypointFactoryInterface;
-use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\GuardFactoryInterface;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\RememberMeFactory;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\SecurityFactoryInterface;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\UserProvider\UserProviderFactoryInterface;
@@ -52,7 +52,7 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
     private $userProviderFactories = [];
     private $statelessFirewallKeys = [];
 
-    private $guardAuthenticationManagerEnabled = false;
+    private $authenticatorManagerEnabled = false;
 
     public function __construct()
     {
@@ -137,7 +137,7 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         $container->setParameter('security.access.always_authenticate_before_granting', $config['always_authenticate_before_granting']);
         $container->setParameter('security.authentication.hide_user_not_found', $config['hide_user_not_found']);
 
-        if ($this->guardAuthenticationManagerEnabled = $config['guard_authentication_manager']) {
+        if ($this->authenticatorManagerEnabled = $config['enable_authenticator_manager']) {
             $loader->load('authenticators.xml');
         }
 
@@ -147,6 +147,11 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
 
         $container->getDefinition('security.authentication.guard_handler')
             ->replaceArgument(2, $this->statelessFirewallKeys);
+
+        if ($this->authenticatorManagerEnabled) {
+            $container->getDefinition('security.authenticator_handler')
+                ->replaceArgument(2, $this->statelessFirewallKeys);
+        }
 
         if ($config['encoders']) {
             $this->createEncoders($config['encoders'], $container);
@@ -265,8 +270,8 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             return new Reference($id);
         }, array_unique($authenticationProviders));
         $authenticationManagerId = 'security.authentication.manager.provider';
-        if ($this->guardAuthenticationManagerEnabled) {
-            $authenticationManagerId = 'security.authentication.manager.guard';
+        if ($this->authenticatorManagerEnabled) {
+            $authenticationManagerId = 'security.authentication.manager.authenticator';
             $container->setAlias('security.authentication.manager', new Alias($authenticationManagerId));
         }
         $container
@@ -404,7 +409,7 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         // Determine default entry point
         $configuredEntryPoint = isset($firewall['entry_point']) ? $firewall['entry_point'] : null;
 
-        if ($this->guardAuthenticationManagerEnabled) {
+        if ($this->authenticatorManagerEnabled) {
             // Remember me listener (must be before calling createAuthenticationListeners() to inject remember me services)
             $container
                 ->setDefinition('security.listener.remember_me.'.$id, new ChildDefinition('security.listener.remember_me'))
@@ -420,10 +425,10 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
 
         $authenticationProviders = array_merge($authenticationProviders, $firewallAuthenticationProviders);
 
-        if ($this->guardAuthenticationManagerEnabled) {
-            // guard authentication manager listener
+        if ($this->authenticatorManagerEnabled) {
+            // authenticator manager listener
             $container
-                ->setDefinition('security.firewall.guard.'.$id.'.locator', new ChildDefinition('security.firewall.guard.locator'))
+                ->setDefinition('security.firewall.authenticator.'.$id.'.locator', new ChildDefinition('security.firewall.authenticator.locator'))
                 ->setArguments([array_map(function ($id) {
                     return new Reference($id);
                 }, $firewallAuthenticationProviders)])
@@ -431,13 +436,13 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             ;
 
             $container
-                ->setDefinition('security.firewall.guard.'.$id, new ChildDefinition('security.firewall.guard'))
-                ->replaceArgument(2, new Reference('security.firewall.guard.'.$id.'.locator'))
+                ->setDefinition('security.firewall.authenticator.'.$id, new ChildDefinition('security.firewall.authenticator'))
+                ->replaceArgument(2, new Reference('security.firewall.authenticator.'.$id.'.locator'))
                 ->replaceArgument(3, $id)
                 ->addTag('kernel.event_listener', ['event' => KernelEvents::REQUEST])
             ;
 
-            $listeners[] = new Reference('security.firewall.guard.'.$id);
+            $listeners[] = new Reference('security.firewall.authenticator.'.$id);
         }
 
         $config->replaceArgument(7, $configuredEntryPoint ?: $defaultEntryPoint);
@@ -501,12 +506,12 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
                 if (isset($firewall[$key])) {
                     $userProvider = $this->getUserProvider($container, $id, $firewall, $key, $defaultProvider, $providerIds, $contextListenerId);
 
-                    if ($this->guardAuthenticationManagerEnabled) {
-                        if (!$factory instanceof GuardFactoryInterface) {
-                            throw new InvalidConfigurationException(sprintf('Cannot configure GuardAuthenticationManager as %s authentication does not support it, set security.guard_authentication_manager to `false`.', $key));
+                    if ($this->authenticatorManagerEnabled) {
+                        if (!$factory instanceof AuthenticatorFactoryInterface) {
+                            throw new InvalidConfigurationException(sprintf('Cannot configure AuthenticatorManager as %s authentication does not support it, set security.enable_authenticator_manager to `false`.', $key));
                         }
 
-                        $authenticationProviders[$id.'_'.$key] = $factory->createGuard($container, $id, $firewall[$key], $userProvider);
+                        $authenticationProviders[$id.'_'.$key] = $factory->createAuthenticator($container, $id, $firewall[$key], $userProvider);
                         if ($factory instanceof EntrypointFactoryInterface) {
                             $defaultEntryPoint = $factory->createEntryPoint($container, $id, $firewall[$key], $defaultEntryPoint);
                         }

@@ -6,8 +6,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Guard\PasswordAuthenticatedInterface;
-use Symfony\Component\Security\Http\Event\CredentialsValidEvent;
+use Symfony\Component\Security\Http\Authenticator\PasswordAuthenticatedInterface;
 use Symfony\Component\Security\Http\Event\VerifyAuthenticatorCredentialsEvent;
 
 /**
@@ -38,7 +37,7 @@ class PasswordMigratingListener implements EventSubscriberInterface
         }
 
         $authenticator = $event->getAuthenticator();
-        if (!$authenticator instanceof PasswordAuthenticatedInterface) {
+        if (!$authenticator instanceof PasswordAuthenticatedInterface || !$authenticator instanceof PasswordUpgraderInterface) {
             return;
         }
 
@@ -54,10 +53,6 @@ class PasswordMigratingListener implements EventSubscriberInterface
 
         $passwordEncoder = $this->encoderFactory->getEncoder($user);
         if (!method_exists($passwordEncoder, 'needsRehash') || !$passwordEncoder->needsRehash($user)) {
-            return;
-        }
-
-        if (!$authenticator instanceof PasswordUpgraderInterface) {
             return;
         }
 

@@ -18,12 +18,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  *
  * @experimental in 5.1
  */
-interface GuardFactoryInterface
+interface AuthenticatorFactoryInterface
 {
     /**
      * Creates the Guard service for the provided configuration.
      *
      * @return string The Guard service ID to be used by the firewall
      */
-    public function createGuard(ContainerBuilder $container, string $id, array $config, ?string $userProviderId): string;
+    public function createAuthenticator(ContainerBuilder $container, string $id, array $config, ?string $userProviderId): string;
 }
