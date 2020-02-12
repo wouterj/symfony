@@ -25,7 +25,7 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
  *
  * @experimental in 5.1
  */
-abstract class AbstractFormLoginAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
+abstract class AbstractFormLoginAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface, RememberMeSupportedInterface
 {
     /**
      * Return the URL to the login page.
@@ -44,11 +44,6 @@ abstract class AbstractFormLoginAuthenticator extends AbstractAuthenticator impl
         $url = $this->getLoginUrl();
 
         return new RedirectResponse($url);
-    }
-
-    public function supportsRememberMe(): bool
-    {
-        return true;
     }
 
     /**

@@ -5,11 +5,19 @@ namespace Symfony\Component\Security\Http\EventListener;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\RememberMeSupportedInterface;
 use Symfony\Component\Security\Http\Event\CredentialsValidEvent;
 use Symfony\Component\Security\Http\Event\CredentialsVerificationFailedEvent;
 use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
 
 /**
+ * The RememberMe *listener* creates and deletes remember me cookies.
+ *
+ * Upon login success or failure and support for remember me
+ * in the firewall and authenticator, this listener will create
+ * a remember me cookie.
+ * Upon login failure, all remember me cookies are removed.
+ *
  * @author Wouter de Jong <wouter@wouterj.nl>
  *
  * @final
@@ -17,13 +25,13 @@ use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
  */
 class RememberMeListener implements EventSubscriberInterface
 {
+    private $rememberMeServices;
     private $providerKey;
     private $logger;
-    /** @var RememberMeServicesInterface|null */
-    private $rememberMeServices;
 
-    public function __construct(string $providerKey, ?LoggerInterface $logger = null)
+    public function __construct(RememberMeServicesInterface $rememberMeServices, string $providerKey, ?LoggerInterface $logger = null)
     {
+        $this->rememberMeServices = $rememberMeServices;
         $this->providerKey = $providerKey;
         $this->logger = $logger;
     }
@@ -34,11 +42,6 @@ class RememberMeListener implements EventSubscriberInterface
             CredentialsValidEvent::class => 'onValidCredentials',
             CredentialsVerificationFailedEvent::class => 'onCredentialsVerificationFailed',
         ];
-    }
-
-    public function setRememberMeServices(RememberMeServicesInterface $rememberMeServices): void
-    {
-        $this->rememberMeServices = $rememberMeServices;
     }
 
     public function onValidCredentials(CredentialsValidEvent $event): void
@@ -66,15 +69,7 @@ class RememberMeListener implements EventSubscriberInterface
             return false;
         }
 
-        if (null === $this->rememberMeServices) {
-            if (null !== $this->logger) {
-                $this->logger->debug('Remember me skipped: it is not configured for the firewall.', ['authenticator' => \get_class($authenticator)]);
-            }
-
-            return false;
-        }
-
-        if (!$authenticator->supportsRememberMe()) {
+        if (!$authenticator instanceof RememberMeSupportedInterface) {
             if (null !== $this->logger) {
                 $this->logger->debug('Remember me skipped: your authenticator does not support it.', ['authenticator' => \get_class($authenticator)]);
             }

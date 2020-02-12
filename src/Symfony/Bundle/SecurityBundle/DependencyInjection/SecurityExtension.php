@@ -25,6 +25,7 @@ use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
@@ -32,6 +33,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Symfony\Component\Security\Core\Encoder\NativePasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\SodiumPasswordEncoder;
+use Symfony\Component\Security\Core\User\ChainUserProvider;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Http\Controller\UserValueResolver;
 use Twig\Extension\AbstractExtension;
@@ -228,8 +230,15 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         foreach ($providerIds as $userProviderId) {
             $userProviders[] = new Reference($userProviderId);
         }
-        $arguments[1] = new IteratorArgument($userProviders);
+        $arguments[1] = $userProviderIteratorsArgument = new IteratorArgument($userProviders);
         $contextListenerDefinition->setArguments($arguments);
+
+        if (\count($userProviders) > 1) {
+            $container->setDefinition('security.user_providers', new Definition(ChainUserProvider::class, [$userProviderIteratorsArgument]))
+                ->setPublic(false);
+        } else {
+            $container->setAlias('security.user_providers', new Alias(current($providerIds)))->setPublic(false);
+        }
 
         if (1 === \count($providerIds)) {
             $container->setAlias(UserProviderInterface::class, current($providerIds));
@@ -409,16 +418,6 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         // Determine default entry point
         $configuredEntryPoint = isset($firewall['entry_point']) ? $firewall['entry_point'] : null;
 
-        if ($this->authenticatorManagerEnabled) {
-            // Remember me listener (must be before calling createAuthenticationListeners() to inject remember me services)
-            $container
-                ->setDefinition('security.listener.remember_me.'.$id, new ChildDefinition('security.listener.remember_me'))
-                ->replaceArgument(0, $id)
-                ->addTag('kernel.event_subscriber')
-                ->addTag('security.remember_me_aware', ['id' => $id, 'provider' => 'none'])
-            ;
-        }
-
         // Authentication listeners
         $firewallAuthenticationProviders = [];
         list($authListeners, $defaultEntryPoint) = $this->createAuthenticationListeners($container, $id, $firewall, $firewallAuthenticationProviders, $defaultProvider, $providerIds, $configuredEntryPoint, $contextListenerId);
@@ -532,7 +531,7 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         return [$listeners, $defaultEntryPoint];
     }
 
-    private function getUserProvider(ContainerBuilder $container, string $id, array $firewall, string $factoryKey, ?string $defaultProvider, array $providerIds, ?string $contextListenerId): ?string
+    private function getUserProvider(ContainerBuilder $container, string $id, array $firewall, string $factoryKey, ?string $defaultProvider, array $providerIds, ?string $contextListenerId): string
     {
         if (isset($firewall[$factoryKey]['provider'])) {
             if (!isset($providerIds[$normalizedName = str_replace('-', '_', $firewall[$factoryKey]['provider'])])) {
@@ -542,13 +541,8 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             return $providerIds[$normalizedName];
         }
 
-        if ('remember_me' === $factoryKey || 'anonymous' === $factoryKey) {
-            if ('remember_me' === $factoryKey && $contextListenerId) {
-                $container->getDefinition($contextListenerId)->addTag('security.remember_me_aware', ['id' => $id, 'provider' => 'none']);
-            }
-
-            // RememberMeFactory will use the firewall secret when created
-            return null;
+        if ('remember_me' === $factoryKey && $contextListenerId) {
+            $container->getDefinition($contextListenerId)->addTag('security.remember_me_aware', ['id' => $id, 'provider' => 'none']);
         }
 
         if ($defaultProvider) {
@@ -563,6 +557,10 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             );
 
             return $userProvider;
+        }
+
+        if ('remember_me' === $factoryKey || 'anonymous' === $factoryKey) {
+            return 'security.user_providers';
         }
 
         throw new InvalidConfigurationException(sprintf('Not configuring explicitly the provider for the "%s" listener on "%s" firewall is ambiguous as there is more than one registered provider.', $factoryKey, $id));

@@ -69,9 +69,4 @@ class AnonymousAuthenticator implements AuthenticatorInterface, TokenAuthenticat
     {
         return null;
     }
-
-    public function supportsRememberMe(): bool
-    {
-        return false;
-    }
 }

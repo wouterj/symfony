@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\Cookie;
 
-class RememberMeFactory implements SecurityFactoryInterface
+class RememberMeFactory implements SecurityFactoryInterface, AuthenticatorFactoryInterface
 {
     protected $options = [
         'name' => 'REMEMBERME',
@@ -44,36 +44,14 @@ class RememberMeFactory implements SecurityFactoryInterface
         ;
 
         // remember me services
-        if (isset($config['service'])) {
-            $templateId = $config['service'];
-            $rememberMeServicesId = $templateId.'.'.$id;
-        } elseif (isset($config['token_provider'])) {
-            $templateId = 'security.authentication.rememberme.services.persistent';
-            $rememberMeServicesId = $templateId.'.'.$id;
-        } else {
-            $templateId = 'security.authentication.rememberme.services.simplehash';
-            $rememberMeServicesId = $templateId.'.'.$id;
-        }
+        $templateId = $this->generateRememberMeServicesTemplateId($config, $id);
+        $rememberMeServicesId = $templateId.'.'.$id;
 
         if ($container->hasDefinition('security.logout_listener.'.$id)) {
             $container
                 ->getDefinition('security.logout_listener.'.$id)
-                ->addMethodCall('addHandler', [new Reference($rememberMeServicesId)])
-            ;
+                ->addMethodCall('addHandler', [new Reference($rememberMeServicesId)]);
         }
-
-        $rememberMeServices = $container->setDefinition($rememberMeServicesId, new ChildDefinition($templateId));
-        $rememberMeServices->replaceArgument(1, $config['secret']);
-        $rememberMeServices->replaceArgument(2, $id);
-
-        if (isset($config['token_provider'])) {
-            $rememberMeServices->addMethodCall('setTokenProvider', [
-                new Reference($config['token_provider']),
-            ]);
-        }
-
-        // remember-me options
-        $rememberMeServices->replaceArgument(3, array_intersect_key($config, $this->options));
 
         // attach to remember-me aware listeners
         $userProviders = [];
@@ -98,17 +76,8 @@ class RememberMeFactory implements SecurityFactoryInterface
                 ;
             }
         }
-        if ($config['user_providers']) {
-            $userProviders = [];
-            foreach ($config['user_providers'] as $providerName) {
-                $userProviders[] = new Reference('security.user.provider.concrete.'.$providerName);
-            }
-        }
-        if (0 === \count($userProviders)) {
-            throw new \RuntimeException('You must configure at least one remember-me aware listener (such as form-login) for each firewall that has remember-me enabled.');
-        }
 
-        $rememberMeServices->replaceArgument(0, new IteratorArgument(array_unique($userProviders)));
+        $this->createRememberMeServices($container, $id, $templateId, $userProviders, $config);
 
         // remember-me listener
         $listenerId = 'security.authentication.listener.rememberme.'.$id;
@@ -117,6 +86,28 @@ class RememberMeFactory implements SecurityFactoryInterface
         $listener->replaceArgument(5, $config['catch_exceptions']);
 
         return [$authProviderId, $listenerId, $defaultEntryPoint];
+    }
+
+    public function createAuthenticator(ContainerBuilder $container, string $id, array $config, string $userProviderId): string
+    {
+        $templateId = $this->generateRememberMeServicesTemplateId($config, $id);
+        $rememberMeServicesId = $templateId.'.'.$id;
+
+        // create remember me services (which manage the remember me cookies)
+        $this->createRememberMeServices($container, $id, $templateId, [new Reference($userProviderId)], $config);
+
+        // create remember me listener (which executes the remember me services for other authenticators)
+        $this->createRememberMeListener($container, $id, $rememberMeServicesId);
+
+        // create remember me authenticator (which re-authenticates the user based on the remember me cookie)
+        $authenticatorId = 'security.authenticator.remember_me.'.$id;
+        $container
+            ->setDefinition($authenticatorId, new ChildDefinition('security.authenticator.remember_me'))
+            ->replaceArgument(0, new Reference($rememberMeServicesId))
+            ->replaceArgument(3, array_intersect_key($config, $this->options))
+        ;
+
+        return $authenticatorId;
     }
 
     public function getPosition()
@@ -162,5 +153,58 @@ class RememberMeFactory implements SecurityFactoryInterface
                 $builder->scalarNode($name)->defaultValue($value);
             }
         }
+    }
+
+    private function generateRememberMeServicesTemplateId(array $config, string $id): string
+    {
+        if (isset($config['service'])) {
+            return $config['service'];
+        }
+
+        if (isset($config['token_provider'])) {
+            return 'security.authentication.rememberme.services.persistent';
+        }
+
+        return 'security.authentication.rememberme.services.simplehash';
+    }
+
+    private function createRememberMeServices(ContainerBuilder $container, string $id, string $templateId, array $userProviders, array $config): void
+    {
+        $rememberMeServicesId = $templateId.'.'.$id;
+
+        $rememberMeServices = $container->setDefinition($rememberMeServicesId, new ChildDefinition($templateId));
+        $rememberMeServices->replaceArgument(1, $config['secret']);
+        $rememberMeServices->replaceArgument(2, $id);
+
+        if (isset($config['token_provider'])) {
+            $rememberMeServices->addMethodCall('setTokenProvider', [
+                new Reference($config['token_provider']),
+            ]);
+        }
+
+        // remember-me options
+        $rememberMeServices->replaceArgument(3, array_intersect_key($config, $this->options));
+
+        if ($config['user_providers']) {
+            $userProviders = [];
+            foreach ($config['user_providers'] as $providerName) {
+                $userProviders[] = new Reference('security.user.provider.concrete.'.$providerName);
+            }
+        }
+
+        if (0 === \count($userProviders)) {
+            throw new \RuntimeException('You must configure at least one remember-me aware listener (such as form-login) for each firewall that has remember-me enabled.');
+        }
+
+        $rememberMeServices->replaceArgument(0, new IteratorArgument(array_unique($userProviders)));
+    }
+
+    private function createRememberMeListener(ContainerBuilder $container, string $id, string $rememberMeServicesId): void
+    {
+        $container
+            ->setDefinition('security.listener.remember_me.'.$id, new ChildDefinition('security.listener.remember_me'))
+            ->replaceArgument(0, new Reference($rememberMeServicesId))
+            ->replaceArgument(1, $id)
+        ;
     }
 }

@@ -52,6 +52,7 @@
                  class="Symfony\Component\Security\Http\EventListener\RememberMeListener"
                  abstract="true">
             <tag name="monolog.logger" channel="security" />
+            <argument/> <!-- remember me services -->
             <argument/> <!-- provider key -->
             <argument type="service" id="logger" on-invalid="null" />
         </service>
@@ -81,6 +82,16 @@
                  abstract="true">
             <argument /> <!-- secret -->
             <argument type="service" id="security.untracked_token_storage" />
+        </service>
+
+        <service id="security.authenticator.remember_me"
+                 class="Symfony\Component\Security\Http\Authenticator\Token\RememberMeAuthenticator"
+                 abstract="true">
+            <argument /> <!-- remember me services -->
+            <argument>%kernel.secret%</argument>
+            <argument type="service" id="security.token_storage" />
+            <argument /> <!-- options -->
+            <argument type="service" id="security.authentication.session_strategy" />
         </service>
     </services>
 </container>
