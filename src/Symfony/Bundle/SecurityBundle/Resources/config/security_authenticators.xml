@@ -4,6 +4,18 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
+        <!-- Manager -->
+
+        <service id="security.authentication.manager.authenticator" class="Symfony\Component\Security\Http\Authentication\AuthenticatorManager">
+            <argument /> <!-- authenticators -->
+            <argument type="service" id="event_dispatcher" />
+            <argument>%security.authentication.manager.erase_credentials%</argument>
+            <call method="setEventDispatcher">
+                <argument type="service" id="event_dispatcher" />
+            </call>
+        </service>
+        <service id="Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface" alias="security.authentication.manager" />
+
         <service id="security.authenticator_handler"
                  class="Symfony\Component\Security\Http\Authentication\AuthenticatorHandler"
         >

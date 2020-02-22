@@ -105,6 +105,12 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
         $loader->load('security_listeners.xml');
         $loader->load('security_rememberme.xml');
 
+        if ($this->authenticatorManagerEnabled = $config['enable_authenticator_manager']) {
+            $loader->load('security_authenticators.xml');
+        } else {
+            $loader->load('security_legacy.xml');
+        }
+
         if (class_exists(AbstractExtension::class)) {
             $loader->load('templating_twig.xml');
         }
@@ -138,10 +144,6 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
 
         $container->setParameter('security.access.always_authenticate_before_granting', $config['always_authenticate_before_granting']);
         $container->setParameter('security.authentication.hide_user_not_found', $config['hide_user_not_found']);
-
-        if ($this->authenticatorManagerEnabled = $config['enable_authenticator_manager']) {
-            $loader->load('authenticators.xml');
-        }
 
         $this->createFirewalls($config, $container);
         $this->createAuthorization($config, $container);
