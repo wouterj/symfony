@@ -36,6 +36,7 @@ use Symfony\Component\Security\Core\Encoder\SodiumPasswordEncoder;
 use Symfony\Component\Security\Core\User\ChainUserProvider;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Http\Controller\UserValueResolver;
+use Symfony\Component\Security\Http\EventListener\SessionListener;
 use Twig\Extension\AbstractExtension;
 
 /**
@@ -153,8 +154,8 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
             ->replaceArgument(2, $this->statelessFirewallKeys);
 
         if ($this->authenticatorManagerEnabled) {
-            $container->getDefinition('security.authenticator_handler')
-                ->replaceArgument(2, $this->statelessFirewallKeys);
+            $container->getDefinition(SessionListener::class)
+                ->replaceArgument(1, $this->statelessFirewallKeys);
         }
 
         if ($config['encoders']) {
@@ -429,23 +430,17 @@ class SecurityExtension extends Extension implements PrependExtensionInterface
                 return new Reference($id);
             }, $firewallAuthenticationProviders);
             $container
-                ->setDefinition($managerId = 'security.authenticator.manager.'.$id, new ChildDefinition('security.authentication.manager.authenticator'))
+                ->setDefinition($managerId = 'security.authenticator.manager.'.$id, new ChildDefinition('security.authenticator.abstract_manager'))
                 ->replaceArgument(0, $authenticators)
+                ->replaceArgument(3, $id)
                 ->addTag('security.authenticator_manager', ['firewall' => $id])
+                ->addTag('monolog.logger', ['channel' => 'security'])
             ;
 
             // authenticator manager listener
             $container
-                ->setDefinition('security.firewall.authenticator.'.$id.'.locator', new ChildDefinition('security.firewall.authenticator.locator'))
-                ->setArguments([$authenticators])
-                ->addTag('container.service_locator')
-            ;
-
-            $container
                 ->setDefinition('security.firewall.authenticator.'.$id, new ChildDefinition('security.firewall.authenticator'))
                 ->replaceArgument(0, new Reference($managerId))
-                ->replaceArgument(2, new Reference('security.firewall.authenticator.'.$id.'.locator'))
-                ->replaceArgument(3, $id)
             ;
 
             $listeners[] = new Reference('security.firewall.authenticator.'.$id);
