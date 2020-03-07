@@ -38,7 +38,7 @@
 
         <!-- Listeners -->
 
-        <service id="Symfony\Component\Security\Http\EventListener\AuthenticatingListener">
+        <service id="Symfony\Component\Security\Http\EventListener\VerifyAuthenticatorCredentialsListener">
             <tag name="kernel.event_subscriber" />
             <argument type="service" id="security.encoder_factory" />
         </service>
