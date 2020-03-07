@@ -27,9 +27,7 @@
         <service id="Symfony\Component\Security\Http\Authentication\AuthenticatorManagerInterface" alias="security.authenticator.manager" />
 
         <service id="security.authentication.manager"
-                 class="Symfony\Component\Security\Http\Authentication\LegacyAuthenticationManager">
-            <argument type="service" id="security.authenticator.manager" />
-        </service>
+                 class="Symfony\Component\Security\Http\Authentication\NoopAuthenticationManager"/>
         <service id="Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface" alias="security.authentication.manager" />
 
         <service id="security.firewall.authenticator"

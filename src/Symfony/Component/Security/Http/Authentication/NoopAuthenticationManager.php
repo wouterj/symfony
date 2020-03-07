@@ -15,22 +15,19 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterfac
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 /**
- * This class is a bridge between the old AuthenticationManagerInterface
- * and the new AuthenticatorManagerInterface.
+ * This class is used when the authenticator system is activated.
+ *
+ * This is used to not break AuthenticationChecker and ContextListener when
+ * using the authenticator system. Once the authenticator system is no longer
+ * experimental, this class can be used trigger deprecation notices.
+ *
+ * @internal
  *
  * @author Wouter de Jong <wouter@wouterj.nl>
  */
-class LegacyAuthenticationManager implements AuthenticationManagerInterface
+class NoopAuthenticationManager implements AuthenticationManagerInterface
 {
-    private $authenticatorManager;
-
-    public function __construct(AuthenticatorManagerInterface $authenticatorManager)
-    {
-        $this->authenticatorManager = $authenticatorManager;
-    }
-
     public function authenticate(TokenInterface $token)
     {
-        return $this->authenticatorManager->authenticateToken($token);
     }
 }

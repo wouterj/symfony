@@ -17,12 +17,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\AuthenticationEvents;
-use Symfony\Component\Security\Core\Event\AuthenticationFailureEvent;
 use Symfony\Component\Security\Core\Event\AuthenticationSuccessEvent;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\Exception\AuthenticationExpiredException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
-use Symfony\Component\Security\Core\Exception\ProviderNotFoundException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
@@ -123,46 +120,6 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
         return $this->executeAuthenticators($authenticators, $request);
     }
 
-    public function authenticateToken(TokenInterface $preAuthenticationToken): TokenInterface
-    {
-        if (!$preAuthenticationToken instanceof PreAuthenticationToken) {
-            /*
-             * The listener *only* passes PreAuthenticationToken instances.
-             * This means that an authenticated token (e.g. PostAuthenticationToken)
-             * is being passed here, which happens if that token becomes
-             * "not authenticated" (e.g. happens if the user changes between
-             * requests). In this case, the user should be logged out.
-             */
-
-            // this should never happen - but technically, the token is
-            // authenticated... so it could just be returned
-            if ($preAuthenticationToken->isAuthenticated()) {
-                return $preAuthenticationToken;
-            }
-
-            // this AccountStatusException causes the user to be logged out
-            throw new AuthenticationExpiredException();
-        }
-
-        $authenticator = $this->findOriginatingAuthenticator($preAuthenticationToken);
-        if (null === $authenticator) {
-            $this->handleAuthenticationFailure(new ProviderNotFoundException(sprintf('Token with provider key "%s" did not originate from any of the authenticators for firewall "%s".', $preAuthenticationToken->getAuthenticatorKey(), $this->providerKey)), $preAuthenticationToken);
-        }
-
-        try {
-            return $this->authenticateViaAuthenticator($authenticator, $preAuthenticationToken);
-        } catch (AuthenticationException $exception) {
-            $this->handleAuthenticationFailure($exception, $preAuthenticationToken);
-        }
-    }
-
-    protected function getAuthenticatorKey(string $key): string
-    {
-        // Authenticators in the AuthenticatorManager are already indexed
-        // by an unique key
-        return $key;
-    }
-
     /**
      * @param AuthenticatorInterface[] $authenticators
      */
@@ -205,15 +162,12 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
                 throw new \UnexpectedValueException(sprintf('The return value of "%1$s::getCredentials()" must not be null. Return false from "%1$s::supports()" instead.', \get_class($authenticator)));
             }
 
-            // create a token with the unique key, so that the provider knows which authenticator to use
-            $token = new PreAuthenticationToken($credentials, $uniqueAuthenticatorKey, $uniqueAuthenticatorKey);
-
             if (null !== $this->logger) {
                 $this->logger->debug('Passing token information to the AuthenticatorManager', ['firewall_key' => $this->providerKey, 'authenticator' => \get_class($authenticator)]);
             }
-            // pass the token into the AuthenticationManager system
-            // this indirectly calls AuthenticatorManager::authenticate()
-            $token = $this->authenticateViaAuthenticator($authenticator, $token);
+
+            // authenticate the credentials (e.g. check password)
+            $token = $this->authenticateViaAuthenticator($authenticator, $credentials);
 
             if (null !== $this->logger) {
                 $this->logger->info('Authenticator successful!', ['token' => $token, 'authenticator' => \get_class($authenticator)]);
@@ -228,7 +182,7 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
                 $this->logger->info('Authenticator failed.', ['exception' => $e, 'authenticator' => \get_class($authenticator)]);
             }
 
-            $response = $this->handleAuthenticatorFailure($e, $request, $authenticator);
+            $response = $this->handleAuthenticationFailure($e, $request, $authenticator);
             if ($response instanceof Response) {
                 return $response;
             }
@@ -253,10 +207,10 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
         return null;
     }
 
-    private function authenticateViaAuthenticator(AuthenticatorInterface $authenticator, PreAuthenticationToken $token): TokenInterface
+    private function authenticateViaAuthenticator(AuthenticatorInterface $authenticator, $credentials): TokenInterface
     {
         // get the user from the Authenticator
-        $user = $authenticator->getUser($token->getCredentials());
+        $user = $authenticator->getUser($credentials);
         if (null === $user) {
             throw new UsernameNotFoundException(sprintf('Null returned from %s::getUser()', \get_class($authenticator)));
         }
@@ -265,7 +219,7 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
             throw new \UnexpectedValueException(sprintf('The %s::getUser() method must return a UserInterface. You returned %s.', \get_class($authenticator), \is_object($user) ? \get_class($user) : \gettype($user)));
         }
 
-        $event = new VerifyAuthenticatorCredentialsEvent($authenticator, $token, $user);
+        $event = new VerifyAuthenticatorCredentialsEvent($authenticator, $credentials, $user);
         $this->eventDispatcher->dispatch($event);
         if (true !== $event->areCredentialsValid()) {
             throw new BadCredentialsException(sprintf('Authentication failed because %s did not approve the credentials.', \get_class($authenticator)));

@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Guard\AuthenticatorInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
-use Symfony\Component\Security\Guard\Token\PreAuthenticationToken as GuardPreAuthenticationGuardToken;
+use Symfony\Component\Security\Guard\Token\PreAuthenticationGuardToken as GuardPreAuthenticationGuardToken;
 use Symfony\Component\Security\Http\Firewall\AbstractListener;
 use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
 

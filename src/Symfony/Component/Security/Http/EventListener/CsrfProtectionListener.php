@@ -39,7 +39,7 @@ class CsrfProtectionListener implements EventSubscriberInterface
             return;
         }
 
-        $csrfToken = new CsrfToken($authenticator->getCsrfTokenId(), $authenticator->getCsrfToken($event->getPreAuthenticatedToken()->getCredentials()));
+        $csrfToken = new CsrfToken($authenticator->getCsrfTokenId(), $authenticator->getCsrfToken($event->getCredentials()));
         if (false === $this->csrfTokenManager->isTokenValid($csrfToken)) {
             throw new InvalidCsrfTokenException('Invalid CSRF token.');
         }
