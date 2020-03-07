@@ -41,7 +41,7 @@ class PasswordMigratingListener implements EventSubscriberInterface
             return;
         }
 
-        if (null !== $password = $authenticator->getPassword($event->getCredentials())) {
+        if (null === $password = $authenticator->getPassword($event->getCredentials())) {
             return;
         }
 
@@ -51,10 +51,10 @@ class PasswordMigratingListener implements EventSubscriberInterface
         }
 
         $passwordEncoder = $this->encoderFactory->getEncoder($user);
-        if (!method_exists($passwordEncoder, 'needsRehash') || !$passwordEncoder->needsRehash($user)) {
+        if (!$passwordEncoder->needsRehash($user->getPassword())) {
             return;
         }
 
-        $authenticator->upgradePassword($user, $passwordEncoder->encodePassword($user, $password));
+        $authenticator->upgradePassword($user, $passwordEncoder->encodePassword($password, $user->getSalt()));
     }
 }

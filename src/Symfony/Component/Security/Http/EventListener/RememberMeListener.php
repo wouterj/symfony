@@ -46,7 +46,15 @@ class RememberMeListener implements EventSubscriberInterface
 
     public function onValidCredentials(CredentialsValidEvent $event): void
     {
-        if (!$this->isRememberMeEnabled($event->getAuthenticator(), $event->getProviderKey())) {
+        if (!$this->isRememberMeEnabled($event->getProviderKey(), $event->getAuthenticator())) {
+            return;
+        }
+
+        if (null === $event->getResponse()) {
+            if (null !== $this->logger) {
+                $this->logger->debug('Remember me skipped: the authenticator did not set a success response.', ['authenticator' => \get_class($event->getAuthenticator())]);
+            }
+
             return;
         }
 
@@ -55,21 +63,21 @@ class RememberMeListener implements EventSubscriberInterface
 
     public function onCredentialsVerificationFailed(CredentialsVerificationFailedEvent $event): void
     {
-        if (!$this->isRememberMeEnabled($event->getAuthenticator(), $event->getProviderKey())) {
+        if (!$this->isRememberMeEnabled($event->getProviderKey())) {
             return;
         }
 
         $this->rememberMeServices->loginFail($event->getRequest(), $event->getException());
     }
 
-    private function isRememberMeEnabled(AuthenticatorInterface $authenticator, string $providerKey): bool
+    private function isRememberMeEnabled(string $providerKey, ?AuthenticatorInterface $authenticator = null): bool
     {
         if ($providerKey !== $this->providerKey) {
             // This listener is created for a different firewall.
             return false;
         }
 
-        if (!$authenticator instanceof RememberMeSupportedInterface) {
+        if (null !== $authenticator && !$authenticator instanceof RememberMeSupportedInterface) {
             if (null !== $this->logger) {
                 $this->logger->debug('Remember me skipped: your authenticator does not support it.', ['authenticator' => \get_class($authenticator)]);
             }

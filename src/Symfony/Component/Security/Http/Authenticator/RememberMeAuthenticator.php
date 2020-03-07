@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Security\Http\Authenticator\Token;
+namespace Symfony\Component\Security\Http\Authenticator;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,9 +18,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Http\RememberMe\AbstractRememberMeServices;
-use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategy;
 
 /**
  * The RememberMe *Authenticator* performs remember me authentication.
@@ -35,21 +33,22 @@ use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategy;
  *
  * @final
  */
-class RememberMeAuthenticator implements AuthenticatorInterface
+class RememberMeAuthenticator implements AuthenticatorInterface, TokenAuthenticatedInterface
 {
     private $rememberMeServices;
     private $secret;
     private $tokenStorage;
-    private $options;
-    private $sessionStrategy;
+    private $options = [
+        'secure' => false,
+        'httponly' => true,
+    ];
 
-    public function __construct(AbstractRememberMeServices $rememberMeServices, string $secret, TokenStorageInterface $tokenStorage, array $options, ?SessionAuthenticationStrategy $sessionStrategy = null)
+    public function __construct(AbstractRememberMeServices $rememberMeServices, string $secret, TokenStorageInterface $tokenStorage, array $options)
     {
         $this->rememberMeServices = $rememberMeServices;
         $this->secret = $secret;
         $this->tokenStorage = $tokenStorage;
-        $this->options = $options;
-        $this->sessionStrategy = $sessionStrategy;
+        $this->options = array_merge($this->options, $options);
     }
 
     public function supports(Request $request): ?bool
@@ -101,10 +100,6 @@ class RememberMeAuthenticator implements AuthenticatorInterface
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey): ?Response
     {
-        if ($request->hasSession() && $request->getSession()->isStarted()) {
-            $this->sessionStrategy->onAuthentication($request, $token);
-        }
-
         return null;
     }
 }

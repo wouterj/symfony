@@ -23,7 +23,6 @@ use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
-use Symfony\Component\Security\Http\Authenticator\Token\PreAuthenticationToken;
 use Symfony\Component\Security\Http\Event\CredentialsValidEvent;
 use Symfony\Component\Security\Http\Event\CredentialsVerificationFailedEvent;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
@@ -40,8 +39,6 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 class AuthenticatorManager implements AuthenticatorManagerInterface
 {
-    use AuthenticatorManagerTrait;
-
     private $authenticators;
     private $tokenStorage;
     private $eventDispatcher;
@@ -131,7 +128,9 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
             // lazily (after initialization). This is important for e.g. the AnonymousAuthenticator
             // as its support is relying on the (initialized) token in the TokenStorage.
             if (false === $authenticator->supports($request)) {
-                $this->logger->debug('Skipping the "{authenticator}" authenticator as it did not support the request.', ['authenticator' => \get_class($authenticator)]);
+                if (null !== $this->logger) {
+                    $this->logger->debug('Skipping the "{authenticator}" authenticator as it did not support the request.', ['authenticator' => \get_class($authenticator)]);
+                }
                 continue;
             }
 
@@ -215,10 +214,6 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
             throw new UsernameNotFoundException(sprintf('Null returned from %s::getUser()', \get_class($authenticator)));
         }
 
-        if (!$user instanceof UserInterface) {
-            throw new \UnexpectedValueException(sprintf('The %s::getUser() method must return a UserInterface. You returned %s.', \get_class($authenticator), \is_object($user) ? \get_class($user) : \gettype($user)));
-        }
-
         $event = new VerifyAuthenticatorCredentialsEvent($authenticator, $credentials, $user);
         $this->eventDispatcher->dispatch($event);
         if (true !== $event->areCredentialsValid()) {
@@ -227,9 +222,6 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
 
         // turn the UserInterface into a TokenInterface
         $authenticatedToken = $authenticator->createAuthenticatedToken($user, $this->providerKey);
-        if (!$authenticatedToken instanceof TokenInterface) {
-            throw new \UnexpectedValueException(sprintf('The %s::createAuthenticatedToken() method must return a TokenInterface. You returned %s.', \get_class($authenticator), \is_object($authenticatedToken) ? \get_class($authenticatedToken) : \gettype($authenticatedToken)));
-        }
 
         if (true === $this->eraseCredentials) {
             $authenticatedToken->eraseCredentials();
@@ -262,32 +254,17 @@ class AuthenticatorManager implements AuthenticatorManagerInterface
         }
     }
 
-    private function handleAuthenticationFailure(AuthenticationException $exception, TokenInterface $token)
-    {
-        if (null !== $this->eventDispatcher) {
-            $this->eventDispatcher->dispatch(new AuthenticationFailureEvent($token, $exception), AuthenticationEvents::AUTHENTICATION_FAILURE);
-        }
-
-        $exception->setToken($token);
-
-        throw $exception;
-    }
-
     /**
      * Handles an authentication failure and returns the Response for the
      * GuardAuthenticator.
      */
-    private function handleAuthenticatorFailure(AuthenticationException $authenticationException, Request $request, AuthenticatorInterface $authenticator): ?Response
+    private function handleAuthenticationFailure(AuthenticationException $authenticationException, Request $request, AuthenticatorInterface $authenticator): ?Response
     {
         $response = $authenticator->onAuthenticationFailure($request, $authenticationException);
 
         $this->eventDispatcher->dispatch(new CredentialsVerificationFailedEvent($authenticationException, $authenticator, $request, $response, $this->providerKey));
 
-        if ($response instanceof Response || null === $response) {
-            // returning null is ok, it means they want the request to continue
-            return $response;
-        }
-
-        throw new \UnexpectedValueException(sprintf('The %s::onAuthenticationFailure method must return null or a Response object. You returned %s.', \get_class($authenticator), \is_object($response) ? \get_class($response) : \gettype($response)));
+        // returning null is ok, it means they want the request to continue
+        return $response;
     }
 }
