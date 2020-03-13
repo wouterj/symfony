@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Firewall\AbstractListener;
 
 /**
  * @author Wouter de Jong <wouter@wouterj.nl>
@@ -29,6 +30,10 @@ interface AuthenticatorManagerInterface
     public function authenticateUser(UserInterface $user, AuthenticatorInterface $authenticator, Request $request): ?Response;
 
     /**
+     * Called to see if authentication should be attempted on this request.
+     *
+     * @see AbstractListener::supports()
+     *
      * @internal
      */
     public function supports(Request $request): ?bool;

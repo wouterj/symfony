@@ -16,6 +16,8 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Http\Authentication\AuthenticatorManagerInterface;
 
 /**
+ * Firewall authentication listener that delegates to the authenticator system.
+ *
  * @author Wouter de Jong <wouter@wouterj.nl>
  *
  * @experimental in 5.1
