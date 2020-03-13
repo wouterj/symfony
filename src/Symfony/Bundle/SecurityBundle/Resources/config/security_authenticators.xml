@@ -99,7 +99,7 @@
         </service>
 
         <service id="security.authenticator.remember_me"
-                 class="Symfony\Component\Security\Http\Authenticator\Token\RememberMeAuthenticator"
+                 class="Symfony\Component\Security\Http\Authenticator\RememberMeAuthenticator"
                  abstract="true">
             <argument /> <!-- remember me services -->
             <argument>%kernel.secret%</argument>
