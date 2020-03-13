@@ -55,11 +55,6 @@ class FirewallAwareAuthenticatorManager implements AuthenticatorManagerInterface
         return $this->getAuthenticatorManager()->authenticateRequest($request);
     }
 
-    public function authenticateToken(TokenInterface $token): TokenInterface
-    {
-        return $this->getAuthenticatorManager()->authenticateToken($token);
-    }
-
     private function getAuthenticatorManager(): AuthenticatorManagerInterface
     {
         $firewallConfig = $this->firewallMap->getFirewallConfig($this->requestStack->getMasterRequest());
