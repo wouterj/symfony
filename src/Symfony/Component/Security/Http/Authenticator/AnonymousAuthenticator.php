@@ -64,9 +64,4 @@ class AnonymousAuthenticator implements AuthenticatorInterface, TokenAuthenticat
     {
         return null;
     }
-
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey): ?Response
-    {
-        return null;
-    }
 }

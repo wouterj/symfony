@@ -91,15 +91,4 @@ interface AuthenticatorInterface
      * not be authenticated. This is probably not what you want to do.
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response;
-
-    /**
-     * Called when authentication executed and was successful!
-     *
-     * This should return the Response sent back to the user, like a
-     * RedirectResponse to the last page they visited.
-     *
-     * If you return null, the current request will continue, and the user
-     * will be authenticated. This makes sense, for example, with an API.
-     */
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey): ?Response;
 }

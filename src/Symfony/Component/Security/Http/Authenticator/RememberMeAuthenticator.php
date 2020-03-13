@@ -97,9 +97,4 @@ class RememberMeAuthenticator implements AuthenticatorInterface, TokenAuthentica
 
         return null;
     }
-
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey): ?Response
-    {
-        return null;
-    }
 }

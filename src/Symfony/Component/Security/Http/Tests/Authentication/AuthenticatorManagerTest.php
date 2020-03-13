@@ -22,6 +22,7 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticatorManager;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\InteractiveAuthenticatorInterface;
 use Symfony\Component\Security\Http\Event\CredentialsValidEvent;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\Event\VerifyAuthenticatorCredentialsEvent;
@@ -213,7 +214,7 @@ class AuthenticatorManagerTest extends TestCase
 
     private function createAuthenticator($supports = true)
     {
-        $authenticator = $this->createMock(AuthenticatorInterface::class);
+        $authenticator = $this->createMock(InteractiveAuthenticatorInterface::class);
         $authenticator->expects($this->any())->method('supports')->willReturn($supports);
 
         return $authenticator;

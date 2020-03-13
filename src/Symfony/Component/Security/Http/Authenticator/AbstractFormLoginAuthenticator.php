@@ -25,7 +25,7 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
  *
  * @experimental in 5.1
  */
-abstract class AbstractFormLoginAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface, RememberMeSupportedInterface
+abstract class AbstractFormLoginAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface, RememberMeSupportedInterface, InteractiveAuthenticatorInterface
 {
     /**
      * Return the URL to the login page.

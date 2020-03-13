@@ -28,7 +28,7 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
  * @final
  * @experimental in 5.1
  */
-class HttpBasicAuthenticator implements AuthenticatorInterface, AuthenticationEntryPointInterface, PasswordAuthenticatedInterface
+class HttpBasicAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface, PasswordAuthenticatedInterface
 {
     protected $realmName;
     private $userProvider;
