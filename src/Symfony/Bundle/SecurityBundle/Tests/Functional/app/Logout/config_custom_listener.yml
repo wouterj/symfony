@@ -1,0 +1,6 @@
+imports:
+- { resource: ./config_access.yml }
+
+services:
+    Symfony\Bundle\SecurityBundle\Tests\Functional\Bundle\EventBundle\EventSubscriber\CustomLogoutSubscriber:
+        tags: [kernel.event_subscriber]

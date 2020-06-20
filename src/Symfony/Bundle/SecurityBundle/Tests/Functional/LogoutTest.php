@@ -85,4 +85,14 @@ class LogoutTest extends AbstractWebTestCase
         $this->assertRedirect($client->getResponse(), '/');
         $this->assertNull($cookieJar->get('flavor'));
     }
+
+    public function testSessionOnLogout()
+    {
+        $client = $this->createClient(['test_case' => 'Logout', 'root_config' => 'config_custom_listener.yml']);
+
+        $client->request('POST', '/login', ['_username' => 'johannes', '_password' => 'test']);
+        $client->request('GET', '/logout');
+
+        $this->assertEquals(['My custom message'], $client->getContainer()->get('session')->getFlashBag()->get('danger'));
+    }
 }
