@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Console;
 
+use Symfony\Component\Console\Command\AutocompleteCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\HelpCommand;
 use Symfony\Component\Console\Command\ListCommand;
@@ -1035,6 +1036,7 @@ class Application implements ResetInterface
             new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this application version'),
             new InputOption('--ansi', '', InputOption::VALUE_NEGATABLE, 'Force (or disable --no-ansi) ANSI output', null),
             new InputOption('--no-interaction', '-n', InputOption::VALUE_NONE, 'Do not ask any interactive question'),
+            new InputOption('--example', '', InputOption::VALUE_REQUIRED, 'Some value example'),
         ]);
     }
 
@@ -1045,7 +1047,7 @@ class Application implements ResetInterface
      */
     protected function getDefaultCommands()
     {
-        return [new HelpCommand(), new ListCommand()];
+        return [new HelpCommand(), new ListCommand(), new AutocompleteCommand()];
     }
 
     /**

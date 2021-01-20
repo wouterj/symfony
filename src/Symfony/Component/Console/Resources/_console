@@ -1,0 +1,23 @@
+#compdef _console console
+
+# autocomplete all available commands for this application
+__symfony_commands() {
+    local _commands=(${(@f)"$(${words[1]} _autocomplete --command)"})
+    _describe 'commands' _commands
+}
+
+# autocomplete options/arguments for a specific command
+# TODO: this totally doesn't work
+__symfony_command() {
+    local _suboptions=(${(@f)"$(${words[1]} _autocomplete --command=${words[2]})"})
+    _arguments -s -S : $_suboptions
+}
+
+# the main autocomplete function
+_console() {
+    local line
+    _global_options=(${(@f)"$(${words[1]} _autocomplete --global-args)"})
+    _arguments -s -S : $_global_options \
+        '1: :__symfony_commands' \
+	    '*: :__symfony_command'
+}
